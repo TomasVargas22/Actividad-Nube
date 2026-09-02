@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividad 5: Clasificador Cloud</title>
+    <link rel="stylesheet" href="styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&family=Press+Start+2P&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1 class="main-title">CLOUD CLASSIFIER</h1>
+        <div class="hud-container">
+            <div class="score-board">
+                Puntos: <span id="score">0</span>
+            </div>
+            <div class="timer-container">
+                <span id="timer-display">00:30</span>
+            </div>
+        </div>
+        <div class="progress-bg">
+            <div id="progress-bar" class="progress-fill"></div>
+        </div>
+    </header>
+
+    <div id="start-screen" class="modal">
+        <div class="modal-content text-center">
+            <img src="phoenix.png" alt="Fénix Desarrollo Web" class="phoenix-logo" />
+            <h2 class="neon-text-white">¡BIENVENIDO AL CLASIFICADOR CLOUD!</h2>
+            <p style="margin-bottom: 20px; line-height: 1.6; font-size: 1.1rem;">
+                Clasifica la mayor cantidad de casos de uso de la nube en solamente <strong>30 segundos</strong>.<br>
+                Arrastra las tarjetas a la categoría correcta.
+            </p>
+            <input type="text" id="player-name" class="cyber-input" placeholder="Tu nombre completo"
+                autocomplete="off" />
+            <br>
+            <button id="start-btn" class="cyber-btn">INICIAR SIMULACIÓN</button>
+        </div>
+    </div>
+
+    <main class="game-container">
+        <div class="boxes-container">
+            <div class="drop-box" data-category="IaaS">
+                <div class="box-icon">🖥️</div>
+                <h2>IaaS</h2>
+            </div>
+            <div class="drop-box" data-category="PaaS">
+                <div class="box-icon">⚙️</div>
+                <h2>PaaS</h2>
+            </div>
+            <div class="drop-box" data-category="SaaS">
+                <div class="box-icon">📱</div>
+                <h2>SaaS</h2>
+            </div>
+            <div class="drop-box" data-category="Nube pública">
+                <div class="box-icon">☁️</div>
+                <h2>Nube Pública</h2>
+            </div>
+            <div class="drop-box" data-category="Nube privada">
+                <div class="box-icon">🔒</div>
+                <h2>Nube Privada</h2>
+            </div>
+            <div class="drop-box" data-category="Nube híbrida">
+                <div class="box-icon">🤝</div>
+                <h2>Nube Híbrida</h2>
+            </div>
+        </div>
+
+        <div class="card-area">
+            <div class="card-slot" id="card-origin">
+
+            </div>
+        </div>
+    </main>
+
+
+    <div id="solution-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <h2>Solucionario Secreto</h2>
+            <div id="solutions-list">
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla Cinematica estilo FNAF -->
+    <div id="fnaf-overlay" class="fnaf-overlay hidden">
+        <div class="fnaf-content">
+            <div id="fnaf-score-text" class="fnaf-score"></div>
+            <div id="fnaf-record-text" class="fnaf-record hidden">🏆 ¡NUEVO RÉCORD! 🏆</div>
+        </div>
+    </div>
+
+
+    <div id="FinJuego" class="modal hidden">
+        <div class="modal-content text-center">
+            <h2 class="neon-text" id="end-game-title">¡SIMULACIÓN COMPLETADA!</h2>
+            <p id="end-game-message">Puntaje Final: <span id="final-score"></span></p>
+            <div id="leaderboard-container">
+                <h3 class="leaderboard-title">🏆 TABLA DE CLASIFICACIÓN</h3>
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>JUGADOR</th>
+                            <th>PUNTOS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+
+                    </tbody>
+                </table>
+            </div>
+            <button id="restart-btn" class="cyber-btn">REINICIAR SISTEMA</button>
+        </div>
+    </div>
+
+    <button id="reset-scores-btn" class="reset-btn">Limpiar Récords</button>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
