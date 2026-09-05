@@ -2,11 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreEl = document.getElementById('score');
     const cardOrigin = document.getElementById('card-origin');
     const dropBoxes = document.querySelectorAll('.drop-box');
-    
+
     const solutionModal = document.getElementById('solution-modal');
     const closeModalBtn = document.getElementById('close-modal');
     const solutionsList = document.getElementById('solutions-list');
-    
+
     const endGameModal = document.getElementById('FinJuego');
     const startScreenModal = document.getElementById('start-screen');
     const startBtn = document.getElementById('start-btn');
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let honkCount = 0;
     let totalCorrectThisGame = 0;
     const camNames = ['CAM 01 - IaaS', 'CAM 02 - PaaS', 'CAM 03 - SaaS', 'CAM 04 - PUBLIC', 'CAM 05 - PRIVATE', 'CAM 06 - HYBRID'];
-    
+
     // Precarga del audio de récord
     const victorySound = new Audio('SOUND2.mp3');
     victorySound.preload = 'auto';
@@ -176,17 +176,17 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         document.body.appendChild(popup);
-        
+
         // Play achievement sound
         sfxAchievement();
-        
+
         setTimeout(() => popup.remove(), 4000);
     }
 
     function renderAchievementsModal() {
         const unlocked = getUnlockedAchievements();
         achievementsList.innerHTML = '';
-        
+
         Object.values(ACHIEVEMENTS).forEach(ach => {
             const isUnlocked = !!unlocked[ach.id];
             const item = document.createElement('div');
@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let bgmTempo = 180; // BPM inicial
     // Notas del arpegio cyberpunk (escala menor pentatónica en E)
     const bgmNotes = [164.81, 195.99, 220.00, 261.63, 329.63, 261.63, 220.00, 195.99]; // E3, G3, A3, C4, E4...
-    const bgmBass  = [82.41, 82.41, 110.00, 110.00, 98.00, 98.00, 82.41, 82.41]; // Bajo E2, A2, G2
+    const bgmBass = [82.41, 82.41, 110.00, 110.00, 98.00, 98.00, 82.41, 82.41]; // Bajo E2, A2, G2
 
     function startBGM() {
         ensureAudio();
@@ -509,10 +509,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Remove any existing shake
         body.classList.remove('shake-light', 'shake-medium', 'shake-heavy');
         void body.offsetWidth; // Force reflow
-        
+
         const cls = `shake-${intensity}`;
         body.classList.add(cls);
-        
+
         const durations = { light: 300, medium: 400, heavy: 500 };
         setTimeout(() => body.classList.remove(cls), durations[intensity] || 400);
     }
@@ -523,13 +523,13 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < (count || 12); i++) {
             const particle = document.createElement('div');
             particle.classList.add('particle');
-            
+
             const size = Math.random() * 8 + 4;
             const angle = (Math.PI * 2 * i) / (count || 12);
             const distance = Math.random() * 80 + 40;
             const px = Math.cos(angle) * distance;
             const py = Math.sin(angle) * distance;
-            
+
             particle.style.width = size + 'px';
             particle.style.height = size + 'px';
             particle.style.left = x + 'px';
@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
             particle.style.setProperty('--px', px + 'px');
             particle.style.setProperty('--py', py + 'px');
             particle.style.animationDuration = (Math.random() * 0.5 + 0.4) + 's';
-            
+
             document.body.appendChild(particle);
             setTimeout(() => particle.remove(), 1000);
         }
@@ -553,13 +553,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fireTimeout = setTimeout(() => deactivateFireMode(), 5000);
             return;
         }
-        
+
         isFireMode = true;
         scoreMultiplier = 2;
-        
+
         document.body.classList.add('fire-mode');
         if (estrellaMario) estrellaMario.classList.remove('hidden');
-        
+
         // Efecto visual global al entrar
         const flash = document.createElement('div');
         flash.style.position = 'fixed';
@@ -588,16 +588,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             if (isGameActive && !bgmInterval) scheduleBGM();
         }
-        
+
         // Show multiplier badge
         fireMultiplierEl = document.createElement('div');
         fireMultiplierEl.classList.add('fire-multiplier');
         fireMultiplierEl.textContent = '⭐ ¡MODO ESTRELLA x2! ⭐';
         document.body.appendChild(fireMultiplierEl);
-        
+
         // Achievement
         saveAchievement('fireMaster');
-        
+
         // Deactivate after 5 seconds
         if (fireTimeout) clearTimeout(fireTimeout);
         fireTimeout = setTimeout(() => deactivateFireMode(), 5000);
@@ -608,11 +608,11 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreMultiplier = 1;
         document.body.classList.remove('fire-mode');
         if (estrellaMario) estrellaMario.classList.add('hidden');
-        
+
         try {
             fireMusic.pause();
             fireMusic.currentTime = 0;
-        } catch (e) {}
+        } catch (e) { }
 
         if (isGameActive && !bgmInterval) {
             scheduleBGM();
@@ -632,20 +632,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function startBoxShuffle() {
         if (boxesShuffling) return;
         boxesShuffling = true;
-        
+
         const boxes = Array.from(dropBoxes);
         boxes.forEach(b => b.classList.add('box-shuffle'));
-        
+
         boxShuffleInterval = setInterval(() => {
             // Pick two random boxes and swap their grid positions
             const i = Math.floor(Math.random() * boxes.length);
             let j = Math.floor(Math.random() * boxes.length);
             while (j === i) j = Math.floor(Math.random() * boxes.length);
-            
+
             const parent = boxes[i].parentNode;
             const nextSiblingI = boxes[i].nextSibling;
             const nextSiblingJ = boxes[j].nextSibling;
-            
+
             // Swap DOM positions
             if (nextSiblingJ === boxes[i]) {
                 parent.insertBefore(boxes[i], boxes[j]);
@@ -673,12 +673,12 @@ document.addEventListener('DOMContentLoaded', () => {
         el.classList.add('time-change');
         el.classList.add(amount > 0 ? 'time-bonus' : 'time-penalty');
         el.textContent = amount > 0 ? `+${amount}s` : `${amount}s`;
-        
+
         // Position near the timer
         const timerRect = timerDisplay.getBoundingClientRect();
         el.style.left = timerRect.left + 'px';
         el.style.top = (timerRect.top + 30) + 'px';
-        
+
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 1500);
     }
@@ -697,28 +697,28 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionAchievements = {};
         consecutiveErrors = 0;
         totalCorrectThisGame = 0;
-        
+
         deactivateFireMode();
         stopBoxShuffle();
-        
+
         scoreEl.textContent = currentScore;
         progressBar.style.width = '100%';
         progressBar.style.backgroundColor = 'var(--neon-green)';
         progressBar.style.boxShadow = '0 0 10px var(--neon-green)';
         timerDisplay.textContent = '00:30';
         timerDisplay.classList.remove('timer-warning');
-        
+
         if (timerInterval) clearInterval(timerInterval);
         startTimer();
         startBGM();
-        
+
         // Show REC indicator
         recIndicator.classList.remove('hidden');
         pantallaEstatica.classList.remove('hidden');
-        
+
         // Copiar y mezclar los casos aleatoriamente
         pendingCases = [...cloudCases].sort(() => Math.random() - 0.5);
-        
+
         // Limpiar cajas de respuestas anteriores
         dropBoxes.forEach(box => {
             const placedCards = box.querySelectorAll('.card');
@@ -733,22 +733,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function startTimer() {
         timerInterval = setInterval(() => {
             timeLeft--;
-            
+
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
             timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
+
             // Actualizar barra de progreso (ahora representa el tiempo)
             const progressPercent = (timeLeft / 30) * 100;
             progressBar.style.width = `${progressPercent}%`;
-            
+
             if (timeLeft <= 10) {
                 timerDisplay.classList.add('timer-warning');
                 progressBar.style.backgroundColor = 'var(--neon-red)';
                 progressBar.style.boxShadow = '0 0 10px var(--neon-red)';
                 sfxTick(true);
                 setBGMTempo(340); // Muy rápido, desesperante
-                
+
                 // Start box shuffle in last 10 seconds
                 if (!boxesShuffling) startBoxShuffle();
             } else if (timeLeft <= 15) {
@@ -760,7 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
             const s = (timeLeft % 60).toString().padStart(2, '0');
             timerDisplay.textContent = `${m}:${s}`;
-            
+
             // Warning styles + MK FINISH HIM logic
             if (timeLeft <= 5 && timeLeft > 0) {
                 timerDisplay.classList.add('timer-warning');
@@ -772,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 timerDisplay.classList.remove('timer-warning');
                 timerDisplay.classList.remove('timer-mk');
             }
-            
+
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 timerDisplay.textContent = "00:00";
@@ -794,11 +794,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const currentCaseData = pendingCases.shift();
         const cardType = currentCaseData.type || 'normal';
-        
+
         // Crear elemento tarjeta
         const card = document.createElement('div');
         card.classList.add('card');
-        
+
         // Add special card class
         if (cardType === 'virus') {
             card.classList.add('card-virus');
@@ -809,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (cardType === 'creeper') {
             card.classList.add('card-creeper');
         }
-        
+
         card.setAttribute('draggable', 'true');
         card.setAttribute('data-answer', currentCaseData.respuesta);
         card.setAttribute('data-type', cardType);
@@ -872,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleDrop(e) {
         e.stopPropagation();
         this.classList.remove('drag-over');
-        
+
         if (!currentCard) return;
 
         const correctAnswer = e.dataTransfer.getData('text/plain');
@@ -886,7 +886,7 @@ document.addEventListener('DOMContentLoaded', () => {
             comboCount++;
             scoreEl.textContent = currentScore;
             sfxCorrect();
-            
+
             // Track speed for speedster achievement
             const now = Date.now();
             if (lastCorrectTime && (now - lastCorrectTime) < 1000) {
@@ -961,26 +961,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 comboMsg = `⚡ ¡COMBO x${comboCount}!`;
                 sfxComboFanfare(comboCount);
             }
-            
+
             if (scoreMultiplier > 1) {
                 comboMsg += ` (x${scoreMultiplier})`;
             }
-            
+
             showFloatingMessage(comboMsg, true, e.clientX, e.clientY);
-            
+
             // Efecto visual de éxito
             currentCard.classList.add('correct', 'placed');
             currentCard.classList.remove('card-virus', 'card-overclock', 'card-golden', 'card-creeper');
             currentCard.setAttribute('draggable', 'false'); // Ya no se puede arrastrar
-            
+
             // Mover físicamente a la caja
             this.appendChild(currentCard);
-            
+
             // Check for Fire Mode warning at combo 4
             if (comboCount === 4) {
                 showMCAchievement('¡Combo x4!', 'Uno más para Modo Fuego 🔥');
             }
-            
+
             currentCard = null;
 
             // Check achievements
@@ -990,7 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 loadNextCard();
             }, 800);
-            
+
         } else {
             // --- Respuesta Incorrecta ---
             comboCount = 0; // Rompe el combo
@@ -999,7 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentCard.classList.add('incorrect');
             sfxWrong();
             shakeScreen('medium'); // Screen shake on error
-            
+
             // Creeper Explosion logic
             if (cardType === 'creeper') {
                 sfxCreeperExplode();
@@ -1014,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 showFloatingMessage('¡ERROR DE PROTOCOLO!', false, e.clientX, e.clientY);
             }
-            
+
             // CRT static burst on error
             triggerEstatica();
 
@@ -1023,12 +1023,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 deactivateFireMode();
                 showFloatingMessage('🔥 Modo Fuego perdido...', false, e.clientX, e.clientY - 30);
             }
-            
+
             // Quitar clase incorrecta después de la animación de rebote
             setTimeout(() => {
-                if(currentCard) currentCard.classList.remove('incorrect');
+                if (currentCard) currentCard.classList.remove('incorrect');
             }, 500);
-            
+
             // Nota: No movemos el elemento en el DOM, por lo que rebota (vuelve) 
             // a su contenedor de origen al fallar el drop.
         }
@@ -1038,21 +1038,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const msg = document.createElement('div');
         msg.classList.add('floating-msg');
         msg.classList.add(isSuccess ? 'success' : 'error');
-        
+
         // Añadir estilos de combo
         if (isSuccess && comboCount >= 5) {
             msg.classList.add('combo-fire');
         } else if (isSuccess && comboCount >= 3) {
             msg.classList.add('combo');
         }
-        
+
         msg.textContent = text;
-        
+
         msg.style.left = `${x}px`;
         msg.style.top = `${y}px`;
-        
+
         document.body.appendChild(msg);
-        
+
         setTimeout(() => {
             msg.remove();
         }, 1000);
@@ -1070,11 +1070,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         document.body.appendChild(ach);
-        
+
         // Trigger reflow for transition
         void ach.offsetWidth;
         ach.classList.add('show');
-        
+
         setTimeout(() => {
             ach.classList.remove('show');
             setTimeout(() => ach.remove(), 600);
@@ -1088,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stopBGM();
         stopBoxShuffle();
         deactivateFireMode();
-        
+
         // Hide FNAF HUD
         recIndicator.classList.add('hidden');
         pantallaEstatica.classList.add('hidden');
@@ -1100,12 +1100,12 @@ document.addEventListener('DOMContentLoaded', () => {
             isFlawless = true;
         }
         checkAchievements();
-        
+
         // Verificar si es nuevo récord ANTES de guardar
         const previousScores = getScores();
         const previousHighScore = previousScores.length > 0 ? previousScores[0].score : 0;
         const isNewRecord = currentScore > previousHighScore && currentScore > 0;
-        
+
         // Guardar puntaje en localStorage
         saveScore(playerName, currentScore);
 
@@ -1122,18 +1122,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function playPowerOutage(isFlawless) {
         // Play sinister hum
         sfxPowerDown();
-        
+
         // Show black screen with eyes
         powerOutage.classList.remove('hidden');
-        
+
         // After 3.5s, hide power outage and show normal game over
         setTimeout(() => {
             risaFnaf.pause();
             risaFnaf.currentTime = 0;
-            
+
             powerOutage.classList.add('hidden');
             sfxGameOver();
-            
+
             if (isFlawless) {
                 endGameTitle.textContent = "FLAWLESS VICTORY";
                 endGameTitle.className = "mk-flawless";
@@ -1145,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 endGameTitle.style.color = "var(--neon-blue)";
                 endGameTitle.style.textShadow = "";
             }
-            
+
             endGameMessage.innerHTML = `Gran esfuerzo, <span class="neon-text">${playerName}</span>.<br><br>Lograste clasificar: <span id="final-score" class="neon-text" style="font-size:1.5rem">${currentScore}</span> tarjetas en 30 segundos.`;
             renderLeaderboard();
             endGameModal.classList.remove('hidden');
@@ -1232,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             endGameTitle.style.color = "#ffd700";
             endGameTitle.style.textShadow = "0 0 15px #ffd700, 0 0 30px #ff8c00";
             endGameMessage.innerHTML = `¡Increíble, <span class="neon-text">${playerName}</span>!<br><br>Nuevo récord: <span id="final-score" style="font-size:2rem; color:#ffd700; text-shadow: 0 0 15px #ffd700;">${currentScore}</span> tarjetas<br><small style="opacity:0.6">Récord anterior: ${previousHighScore}</small>`;
-            
+
             renderLeaderboard();
             endGameModal.classList.remove('hidden');
         };
@@ -1245,24 +1245,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Paso 1: Pantalla negra aparece
         fnafOverlay.classList.remove('hidden');
-        
+
         let soundPlayed = false;
 
         // Paso 2: Mostrar puntaje base e iniciar cuenta
         setTimeout(() => {
             fnafScoreText.classList.add('visible');
-            
+
             // Empezamos máximo 6 números antes para que no sea infinito.
             // Con menos tiempo por número será mucho más rápido.
             let startScore = Math.max(0, currentScore - 6);
             let displayScore = startScore;
             fnafScoreText.textContent = displayScore;
-            
+
             const steps = currentScore - startScore;
-            
+
             if (steps > 0) {
                 const intervalTime = 300; // Mucho más rápido (300ms por número)
-                
+
                 const countInterval = setInterval(() => {
                     displayScore++;
                     fnafScoreText.textContent = displayScore;
@@ -1270,17 +1270,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     fnafScoreText.classList.remove('flicker');
                     void fnafScoreText.offsetWidth; // Forzar reflow
                     fnafScoreText.classList.add('flicker');
-                    
+
                     // Cuando llega al final
                     if (displayScore >= currentScore) {
                         clearInterval(countInterval);
-                        
+
                         if (!soundPlayed) {
                             victorySound.currentTime = 0; // Iniciar desde el principio del nuevo audio
                             victorySound.play().catch(e => console.warn("Audio record warning:", e));
                             soundPlayed = true;
                         }
-                        
+
                         // Revelar "¡NUEVO RÉCORD!" exactamente al llegar al puntaje final
                         fnafRecordText.classList.remove('hidden');
                         requestAnimationFrame(() => {
@@ -1324,28 +1324,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderLeaderboard() {
         const scores = getScores();
         leaderboardBody.innerHTML = '';
-        
+
         if (scores.length === 0) {
             leaderboardBody.innerHTML = '<tr><td colspan="3" style="padding:15px; opacity:0.5;">Sin registros aún</td></tr>';
             return;
         }
-        
+
         scores.forEach((entry, index) => {
             const tr = document.createElement('tr');
-            
+
             // Medallas para top 3
             if (index === 0) tr.classList.add('gold');
             else if (index === 1) tr.classList.add('silver');
             else if (index === 2) tr.classList.add('bronze');
-            
+
             // Resaltar al jugador actual (último registro que coincida)
             if (entry.name === playerName && entry.score === currentScore) {
                 tr.classList.add('current-player');
             }
-            
+
             const medalIcons = ['🥇', '🥈', '🥉'];
             const posText = index < 3 ? medalIcons[index] : (index + 1);
-            
+
             tr.innerHTML = `
                 <td>${posText}</td>
                 <td>${entry.name}</td>
@@ -1408,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeAchievementsBtn.addEventListener('click', () => achievementsModal.classList.add('hidden'));
     achievementsBtn.addEventListener('click', () => toggleAchievements());
 
-    // --- FNAF: Phoenix Logo Honk ---
+    // --- FNAF: Elit Logo Honk ---
     if (phoenixLogo) {
         phoenixLogo.addEventListener('click', () => {
             sfxHonk();
@@ -1417,7 +1417,7 @@ document.addEventListener('DOMContentLoaded', () => {
             void phoenixLogo.offsetWidth; // Force reflow
             phoenixLogo.classList.add('honk-bounce');
             setTimeout(() => phoenixLogo.classList.remove('honk-bounce'), 450);
-            
+
             if (honkCount >= 5) {
                 saveAchievement('boopTheSnoot');
             }
@@ -1473,7 +1473,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentCard) currentCard.remove();
             loadNextCard();
             adminModal.classList.add('hidden');
-            showFloatingMessage(`MOD INYECTADO: ${type.toUpperCase()}`, true, window.innerWidth/2, window.innerHeight/2);
+            showFloatingMessage(`MOD INYECTADO: ${type.toUpperCase()}`, true, window.innerWidth / 2, window.innerHeight / 2);
         }
     }
 
@@ -1533,7 +1533,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isGameActive) return alert("Inicia partida primero.");
         currentScore += 5;
         scoreEl.textContent = currentScore;
-        showFloatingMessage('+5 PUNTOS (CHEAT)', true, window.innerWidth/2, window.innerHeight/2);
+        showFloatingMessage('+5 PUNTOS (CHEAT)', true, window.innerWidth / 2, window.innerHeight / 2);
     });
 
     // Permitir iniciar también presionando Enter en el input de nombre
