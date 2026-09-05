@@ -30,13 +30,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeAdminBtn = document.getElementById('close-admin');
     const secretTitle = document.getElementById('secret-title');
 
-    // Mario Star
-    const marioStar = document.getElementById('mario-star');
+    // estrella de mario
+    const estrellaMario = document.getElementById('mario-star');
 
-    // FNAF elements
+    // elementos de fnaf
     const recIndicator = document.getElementById('rec-indicator');
     const camLabel = document.getElementById('cam-label');
-    const crtStatic = document.getElementById('crt-static');
+    const pantallaEstatica = document.getElementById('crt-static');
     const itsMe = document.getElementById('its-me');
     const powerOutage = document.getElementById('power-outage');
     const phoenixLogo = document.getElementById('phoenix-logo');
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { once: true });
 
-    // --- ACHIEVEMENTS SYSTEM ---
+    // logros
     const ACHIEVEMENTS = {
         speedster: {
             id: 'speedster',
@@ -208,7 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
         achievementsModal.classList.toggle('hidden');
     }
 
-    // --- MOTOR DE SONIDO (Estilo Balatro - Web Audio API) ---
+    // motor de sonido - lo saque de un tutorial de web audio api y de stackoverflow
+    // NO TOCAR pq se rompe todo el audio del juego
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
 
@@ -217,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    // Sonido de agarrar carta (click crujiente corto)
+    // sonido para cuando agarras la carta
     function sfxGrab() {
         ensureAudio();
         const osc = audioCtx.createOscillator();
@@ -231,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         osc.start(); osc.stop(audioCtx.currentTime + 0.08);
     }
 
-    // Sonido correcto (chip satisfactorio tipo Balatro - doble tono ascendente)
+    // sonido cuando aciertas
     function sfxCorrect() {
         ensureAudio();
         // Tono base sube con cada combo (como fichas de Balatro)
@@ -271,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         osc3.start(audioCtx.currentTime + 0.1); osc3.stop(audioCtx.currentTime + 0.35);
     }
 
-    // Sonido de COMBO grande (fanfarria rápida ascendente tipo Balatro mult)
+    // combo grande
     function sfxComboFanfare(combo) {
         ensureAudio();
         const notes = [523, 659, 784, 880, 1047]; // C5 E5 G5 A5 C6
@@ -289,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Sonido incorrecto (buzzer descendente)
+    // sonido cuando fallas
     function sfxWrong() {
         ensureAudio();
         const osc = audioCtx.createOscillator();
@@ -303,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
     }
 
-    // Sonido virus (alerta distorsionada)
+    // sonido del virus
     function sfxVirus() {
         ensureAudio();
         const osc = audioCtx.createOscillator();
@@ -327,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         osc2.start(); osc2.stop(audioCtx.currentTime + 0.3);
     }
 
-    // Sonido overclock (ascendente brillante)
+    // overclock
     function sfxOverclock() {
         ensureAudio();
         const notes = [440, 554, 659, 880, 1108];
@@ -344,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Sonido de modo fuego activado
+    // modo fuego
     function sfxFireMode() {
         ensureAudio();
         const notes = [262, 330, 392, 523, 659, 784];
@@ -361,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Sonido de logro desbloqueado
+    // logro
     function sfxAchievement() {
         ensureAudio();
         const notes = [523, 659, 784, 1047];
@@ -378,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Tick del timer (bip sutil, más agudo cuando queda poco)
+    // tick del timer
     function sfxTick(urgent) {
         ensureAudio();
         const osc = audioCtx.createOscillator();
@@ -391,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         osc.start(); osc.stop(audioCtx.currentTime + 0.06);
     }
 
-    // Game Over (descendente dramático)
+    // game over
     function sfxGameOver() {
         ensureAudio();
         [400, 350, 300, 200].forEach((freq, i) => {
@@ -407,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Clic de botón (pop suave)
+    // clic
     function sfxClick() {
         ensureAudio();
         const osc = audioCtx.createOscillator();
@@ -421,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         osc.start(); osc.stop(audioCtx.currentTime + 0.08);
     }
 
-    // --- MÚSICA DE FONDO (Procedural Cyberpunk BGM) ---
+    // musica de fondo
     let bgmInterval = null;
     let bgmStep = 0;
     let bgmTempo = 180; // BPM inicial
@@ -502,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- SCREEN SHAKE ---
+    // efecto de temblor
     function shakeScreen(intensity) {
         const body = document.body;
         // Remove any existing shake
@@ -516,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => body.classList.remove(cls), durations[intensity] || 400);
     }
 
-    // --- PARTICLE EFFECTS ---
+    // particulas
     function emitParticles(x, y, color, count) {
         const colors = color ? [color] : ['#2ecc71', '#27ae60', '#3498db', '#ffffff'];
         for (let i = 0; i < (count || 12); i++) {
@@ -543,7 +544,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- FIRE MODE ---
+    // modo fuego / estrella de mario
+    console.log('fire mode cargado');
     function activateFireMode() {
         if (isFireMode) {
             // Si ya está activo, reiniciamos el temporizador
@@ -556,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreMultiplier = 2;
         
         document.body.classList.add('fire-mode');
-        if (marioStar) marioStar.classList.remove('hidden');
+        if (estrellaMario) estrellaMario.classList.remove('hidden');
         
         // Efecto visual global al entrar
         const flash = document.createElement('div');
@@ -605,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isFireMode = false;
         scoreMultiplier = 1;
         document.body.classList.remove('fire-mode');
-        if (marioStar) marioStar.classList.add('hidden');
+        if (estrellaMario) estrellaMario.classList.add('hidden');
         
         try {
             fireMusic.pause();
@@ -626,7 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- BOX SHUFFLE (moving boxes in last 10s) ---
+    // mezclar cajas en los ultimos 10 segundos
     function startBoxShuffle() {
         if (boxesShuffling) return;
         boxesShuffling = true;
@@ -665,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropBoxes.forEach(b => b.classList.remove('box-shuffle'));
     }
 
-    // --- TIME CHANGE INDICATOR ---
+    // indicador de cambio de tiempo
     function showTimeChange(amount) {
         const el = document.createElement('div');
         el.classList.add('time-change');
@@ -683,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializar juego
     function initGame() {
+        console.log('iniciando juego...');
         isGameActive = true;
         currentScore = 0;
         timeLeft = 30;
@@ -711,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Show REC indicator
         recIndicator.classList.remove('hidden');
-        crtStatic.classList.remove('hidden');
+        pantallaEstatica.classList.remove('hidden');
         
         // Copiar y mezclar los casos aleatoriamente
         pendingCases = [...cloudCases].sort(() => Math.random() - 0.5);
@@ -1013,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // CRT static burst on error
-            triggerCRTStatic();
+            triggerEstatica();
 
             // Deactivate fire mode on error
             if (isFireMode) {
@@ -1079,6 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function gameOver() {
+        console.log('se acabo el juego');
         isGameActive = false;
         if (timerInterval) clearInterval(timerInterval);
         stopBGM();
@@ -1087,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Hide FNAF HUD
         recIndicator.classList.add('hidden');
-        crtStatic.classList.add('hidden');
+        pantallaEstatica.classList.add('hidden');
 
         // Check end-of-game achievements
         let isFlawless = false;
@@ -1124,8 +1128,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // After 3.5s, hide power outage and show normal game over
         setTimeout(() => {
-            fnafLaughAudio.pause();
-            fnafLaughAudio.currentTime = 0;
+            risaFnaf.pause();
+            risaFnaf.currentTime = 0;
             
             powerOutage.classList.add('hidden');
             sfxGameOver();
@@ -1148,53 +1152,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3500);
     }
 
-    // --- FNAF: CRT Static burst ---
-    function triggerCRTStatic() {
-        crtStatic.classList.add('active');
-        setTimeout(() => crtStatic.classList.remove('active'), 300);
+    // estatica
+    function triggerEstatica() {
+        pantallaEstatica.classList.add('active');
+        setTimeout(() => pantallaEstatica.classList.remove('active'), 300);
     }
 
-    // --- FNAF: IT'S ME subliminal ---
+    // its me subliminal
     function triggerItsMe() {
         itsMe.classList.remove('hidden');
         setTimeout(() => itsMe.classList.add('hidden'), 200);
     }
 
-    // --- FNAF: Honk Sound (Freddy nose boop) ---
-    const fnafNoseAudio = new Audio('Fnaf nose.mp3');
-    fnafNoseAudio.preload = 'auto';
+    // sonido de la nariz del fenix
+    const sonidoNariz = new Audio('Fnaf nose.mp3');
+    sonidoNariz.preload = 'auto';
 
     function sfxHonk() {
-        fnafNoseAudio.currentTime = 0;
-        fnafNoseAudio.play();
+        sonidoNariz.currentTime = 0;
+        sonidoNariz.play();
     }
 
-    // --- FNAF: Power Down sound (sinister hum + laugh) ---
-    const fnafLaughAudio = new Audio('Fnaf risa.mp3');
-    fnafLaughAudio.preload = 'auto';
+    // risa de fnaf para cuando pierdes
+    const risaFnaf = new Audio('Fnaf risa.mp3');
+    risaFnaf.preload = 'auto';
 
     function sfxPowerDown() {
-        fnafLaughAudio.currentTime = 0;
-        fnafLaughAudio.play();
+        risaFnaf.currentTime = 0;
+        risaFnaf.play();
     }
 
-    // --- MINECRAFT: Creeper Sounds ---
-    const creeperAudio = new Audio('Creeper.mp3');
-    creeperAudio.preload = 'auto';
+    // sonidos del creeper de minecraft
+    const sonidoCreeper = new Audio('Creeper.mp3');
+    sonidoCreeper.preload = 'auto';
 
     function sfxCreeperHiss() {
-        creeperAudio.currentTime = 0;
-        creeperAudio.play();
-        // Pause after the hiss (approx 1.5s) before it explodes
+        sonidoCreeper.currentTime = 0;
+        sonidoCreeper.play();
         setTimeout(() => {
-            creeperAudio.pause();
+            sonidoCreeper.pause();
         }, 1500);
     }
 
     function sfxCreeperExplode() {
-        // Start right at the explosion part (approx 1.5s)
-        creeperAudio.currentTime = 1.5;
-        creeperAudio.play();
+        sonidoCreeper.currentTime = 1.5;
+        sonidoCreeper.play();
     }
 
     function launchConfetti() {
@@ -1501,7 +1503,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('trigger-crt')?.addEventListener('click', () => {
-        triggerCRTStatic();
+        triggerEstatica();
         adminModal.classList.add('hidden');
     });
 

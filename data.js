@@ -1,8 +1,6 @@
-// data.js
-// Puedes agregar más casos copiando y pegando un bloque { caso: "...", respuesta: "...", type: "..." }
-// Asegúrate de que la 'respuesta' coincida exactamente con una de estas categorías: 
-// "IaaS", "PaaS", "SaaS", "Nube pública", "Nube privada", "Nube híbrida"
-// type puede ser: "normal", "virus" (resta 3s), "overclock" (suma 5s)
+// datos del juego
+// las respuestas son: "IaaS", "PaaS", "SaaS", "Nube pública", "Nube privada", "Nube híbrida"
+// type: "normal", "virus" (resta 3s), "overclock" (suma 5s)
 
 const cloudCases = [
     {
@@ -80,7 +78,7 @@ const cloudCases = [
         respuesta: "IaaS",
         type: "normal"
     },
-    // --- TARJETAS ESPECIALES ---
+    // tarjetas virus
     {
         caso: "⚠️ ALERTA: Un ransomware ha cifrado los datos del servidor en la nube pública. El equipo de TI debe actuar rápido para contener el ataque antes de que se propague.",
         respuesta: "Nube pública",
@@ -111,13 +109,13 @@ const cloudCases = [
         respuesta: "SaaS",
         type: "overclock"
     },
-    // --- GOLDEN FREDDY (Easter Egg súper raro) ---
+    // golden freddy easter egg
     {
         caso: "🐻 GOLDEN FREDDY: Un misterioso servicio en la nube aparece sin previo aviso. Parece una infraestructura fantasma que ofrece máquinas virtuales ilimitadas... pero solo existe por unos segundos. ¿Es IaaS o solo una alucinación?",
         respuesta: "IaaS",
         type: "golden"
     },
-    // --- CREEPER (Easter Egg Minecraft) ---
+    // creeper jaja
     {
         caso: "<img src='creeper-icon.png' alt='Creeper' style='width: 22px; height: 22px; vertical-align: middle; image-rendering: pixelated; border-radius: 2px;'> Awww man... este servicio en la nube se ve verde y se acerca peligrosamente a tu base de datos. ¡Rápido, ponlo en un servidor aislado o explotará toda la empresa! (Pista: Infraestructura)",
         respuesta: "IaaS",
