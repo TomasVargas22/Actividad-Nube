@@ -45,8 +45,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let sessionAchievements = {};
     
     // Precarga del audio de récord
-    const victorySound = new Audio('sound2.mp3');
+    const victorySound = new Audio('SOUND2.mp3');
     victorySound.preload = 'auto';
+    victorySound.addEventListener('error', () => {
+        if (victorySound.src.includes('SOUND2.mp3')) victorySound.src = 'sound2.mp3';
+    }, { once: true });
+
+    // Precarga de música para Modo Fuego (busca 'fuego.mp3' o 'fire.mp3')
+    const fireMusic = new Audio('fuego.mp3');
+    fireMusic.preload = 'auto';
+    fireMusic.loop = true;
+    fireMusic.volume = 0.85;
+    fireMusic.addEventListener('error', () => {
+        if (fireMusic.src.includes('fuego.mp3')) fireMusic.src = 'fire.mp3';
+    }, { once: true });
 
     // --- ACHIEVEMENTS SYSTEM ---
     const ACHIEVEMENTS = {
@@ -497,13 +509,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FIRE MODE ---
     function activateFireMode() {
-        if (isFireMode) return;
+        if (isFireMode) {
+            if (fireTimeout) clearTimeout(fireTimeout);
+            fireTimeout = setTimeout(() => deactivateFireMode(), 5000);
+            return;
+        }
         isFireMode = true;
         scoreMultiplier = 2;
         
         document.body.classList.add('fire-mode');
         sfxFireMode();
         shakeScreen('light');
+
+        // Pausar música base procedural y reproducir música de fuego
+        stopBGM();
+        try {
+            fireMusic.currentTime = 0;
+            const playPromise = fireMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    // Si el archivo de audio aún no existe, continuar con el BGM procedural
+                    if (isGameActive && !bgmInterval) scheduleBGM();
+                });
+            }
+        } catch (err) {
+            if (isGameActive && !bgmInterval) scheduleBGM();
+        }
         
         // Show multiplier badge
         fireMultiplierEl = document.createElement('div');
@@ -524,6 +555,16 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreMultiplier = 1;
         document.body.classList.remove('fire-mode');
         
+        // Detener música de fuego y volver al BGM normal
+        try {
+            fireMusic.pause();
+            fireMusic.currentTime = 0;
+        } catch (e) {}
+
+        if (isGameActive && !bgmInterval) {
+            scheduleBGM();
+        }
+
         if (fireMultiplierEl) {
             fireMultiplierEl.remove();
             fireMultiplierEl = null;
@@ -1100,6 +1141,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'S')) {
             e.preventDefault();
             solutionModal.classList.toggle('hidden');
+        }
+        // Ctrl + Shift + F = Cheat: activar Modo Fuego instantáneamente
+        if (e.ctrlKey && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+            e.preventDefault();
+            if (!isGameActive) {
+                playerName = playerNameInput.value.trim() || 'Jugador';
+                startScreenModal.classList.add('hidden');
+                initGame();
+            }
+            comboCount = 5;
+            activateFireMode();
         }
         // L key for achievements
         if ((e.key === 'l' || e.key === 'L') && !e.ctrlKey && !e.shiftKey) {
