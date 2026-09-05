@@ -656,6 +656,8 @@ h1.main-title {
     border-radius: 12px;
     max-width: 500px;
     width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
     position: relative;
     border: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
