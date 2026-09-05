@@ -19,6 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerNameInput = document.getElementById('player-name');
     const leaderboardBody = document.getElementById('leaderboard-body');
 
+    // Achievements modal
+    const achievementsModal = document.getElementById('achievements-modal');
+    const closeAchievementsBtn = document.getElementById('close-achievements');
+    const achievementsList = document.getElementById('achievements-list');
+    const achievementsBtn = document.getElementById('achievements-btn');
+
     let currentScore = 0;
     let pendingCases = [];
     let currentCard = null;
@@ -27,10 +33,132 @@ document.addEventListener('DOMContentLoaded', () => {
     let playerName = "";
     let comboCount = 0;
     let isGameActive = false;
+    let scoreMultiplier = 1;
+    let isFireMode = false;
+    let fireTimeout = null;
+    let fireMultiplierEl = null;
+    let boxShuffleInterval = null;
+    let boxesShuffling = false;
+    let totalErrors = 0;
+    let fastCorrectCount = 0;
+    let lastCorrectTime = 0;
+    let sessionAchievements = {};
     
     // Precarga del audio de récord
     const victorySound = new Audio('sound2.mp3');
     victorySound.preload = 'auto';
+
+    // --- ACHIEVEMENTS SYSTEM ---
+    const ACHIEVEMENTS = {
+        speedster: {
+            id: 'speedster',
+            icon: '⚡',
+            name: 'Velocista',
+            desc: 'Clasifica 5 tarjetas correctas en menos de 5 segundos.',
+            check: () => fastCorrectCount >= 5
+        },
+        flawless: {
+            id: 'flawless',
+            icon: '🛡️',
+            name: 'Impecable',
+            desc: 'Termina la partida con 0 equivocaciones.',
+            check: () => totalErrors === 0 && currentScore > 0
+        },
+        lastSecond: {
+            id: 'lastSecond',
+            icon: '🕒',
+            name: 'Al Límite',
+            desc: 'Acierta una tarjeta cuando queda 1 segundo o menos.',
+            check: () => false // Checked manually in handleDrop
+        },
+        fireMaster: {
+            id: 'fireMaster',
+            icon: '🔥',
+            name: 'En Llamas',
+            desc: 'Activa el Modo Fuego (combo x5).',
+            check: () => false // Checked when fire mode activates
+        },
+        tenPoints: {
+            id: 'tenPoints',
+            icon: '🌟',
+            name: 'Experto Cloud',
+            desc: 'Alcanza 10 puntos en una sola partida.',
+            check: () => currentScore >= 10
+        },
+        virusSurvivor: {
+            id: 'virusSurvivor',
+            icon: '🦠',
+            name: 'Antivirus',
+            desc: 'Clasifica correctamente una tarjeta Virus.',
+            check: () => false // Checked manually
+        }
+    };
+
+    function getUnlockedAchievements() {
+        const data = localStorage.getItem('cloudClassifierAchievements');
+        return data ? JSON.parse(data) : {};
+    }
+
+    function saveAchievement(id) {
+        const unlocked = getUnlockedAchievements();
+        if (!unlocked[id]) {
+            unlocked[id] = { date: new Date().toLocaleString() };
+            localStorage.setItem('cloudClassifierAchievements', JSON.stringify(unlocked));
+            showAchievementPopup(ACHIEVEMENTS[id]);
+        }
+        sessionAchievements[id] = true;
+    }
+
+    function checkAchievements() {
+        Object.values(ACHIEVEMENTS).forEach(ach => {
+            if (ach.check && ach.check()) {
+                saveAchievement(ach.id);
+            }
+        });
+    }
+
+    function showAchievementPopup(ach) {
+        const popup = document.createElement('div');
+        popup.classList.add('achievement-popup');
+        popup.innerHTML = `
+            <span class="ach-icon">${ach.icon}</span>
+            <div>
+                <div class="ach-text">LOGRO DESBLOQUEADO</div>
+                <div class="ach-name">${ach.name}</div>
+            </div>
+        `;
+        document.body.appendChild(popup);
+        
+        // Play achievement sound
+        sfxAchievement();
+        
+        setTimeout(() => popup.remove(), 4000);
+    }
+
+    function renderAchievementsModal() {
+        const unlocked = getUnlockedAchievements();
+        achievementsList.innerHTML = '';
+        
+        Object.values(ACHIEVEMENTS).forEach(ach => {
+            const isUnlocked = !!unlocked[ach.id];
+            const item = document.createElement('div');
+            item.classList.add('achievement-item', isUnlocked ? 'unlocked' : 'locked');
+            item.innerHTML = `
+                <span class="achievement-icon">${ach.icon}</span>
+                <div class="achievement-info">
+                    <h4>${ach.name}</h4>
+                    <p>${ach.desc}</p>
+                    ${isUnlocked ? `<small style="color: var(--overclock-gold); opacity: 0.7;">Desbloqueado: ${unlocked[ach.id].date}</small>` : ''}
+                </div>
+            `;
+            achievementsList.appendChild(item);
+        });
+    }
+
+    function toggleAchievements() {
+        renderAchievementsModal();
+        achievementsModal.classList.toggle('hidden');
+    }
 
     // --- MOTOR DE SONIDO (Estilo Balatro - Web Audio API) ---
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -125,6 +253,81 @@ document.addEventListener('DOMContentLoaded', () => {
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
         osc.connect(gain).connect(audioCtx.destination);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    // Sonido virus (alerta distorsionada)
+    function sfxVirus() {
+        ensureAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+
+        // Noise burst
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'square';
+        osc2.frequency.setValueAtTime(60, audioCtx.currentTime);
+        gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc2.connect(gain2).connect(audioCtx.destination);
+        osc2.start(); osc2.stop(audioCtx.currentTime + 0.3);
+    }
+
+    // Sonido overclock (ascendente brillante)
+    function sfxOverclock() {
+        ensureAudio();
+        const notes = [440, 554, 659, 880, 1108];
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            const t = audioCtx.currentTime + i * 0.06;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.15, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(t); osc.stop(t + 0.2);
+        });
+    }
+
+    // Sonido de modo fuego activado
+    function sfxFireMode() {
+        ensureAudio();
+        const notes = [262, 330, 392, 523, 659, 784];
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            const t = audioCtx.currentTime + i * 0.05;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.12, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(t); osc.stop(t + 0.18);
+        });
+    }
+
+    // Sonido de logro desbloqueado
+    function sfxAchievement() {
+        ensureAudio();
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            const t = audioCtx.currentTime + i * 0.12;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.2, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(t); osc.stop(t + 0.3);
+        });
     }
 
     // Tick del timer (bip sutil, más agudo cuando queda poco)
@@ -251,12 +454,156 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- SCREEN SHAKE ---
+    function shakeScreen(intensity) {
+        const body = document.body;
+        // Remove any existing shake
+        body.classList.remove('shake-light', 'shake-medium', 'shake-heavy');
+        void body.offsetWidth; // Force reflow
+        
+        const cls = `shake-${intensity}`;
+        body.classList.add(cls);
+        
+        const durations = { light: 300, medium: 400, heavy: 500 };
+        setTimeout(() => body.classList.remove(cls), durations[intensity] || 400);
+    }
+
+    // --- PARTICLE EFFECTS ---
+    function emitParticles(x, y, color, count) {
+        const colors = color ? [color] : ['#2ecc71', '#27ae60', '#3498db', '#ffffff'];
+        for (let i = 0; i < (count || 12); i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            const size = Math.random() * 8 + 4;
+            const angle = (Math.PI * 2 * i) / (count || 12);
+            const distance = Math.random() * 80 + 40;
+            const px = Math.cos(angle) * distance;
+            const py = Math.sin(angle) * distance;
+            
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.setProperty('--px', px + 'px');
+            particle.style.setProperty('--py', py + 'px');
+            particle.style.animationDuration = (Math.random() * 0.5 + 0.4) + 's';
+            
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1000);
+        }
+    }
+
+    // --- FIRE MODE ---
+    function activateFireMode() {
+        if (isFireMode) return;
+        isFireMode = true;
+        scoreMultiplier = 2;
+        
+        document.body.classList.add('fire-mode');
+        sfxFireMode();
+        shakeScreen('light');
+        
+        // Show multiplier badge
+        fireMultiplierEl = document.createElement('div');
+        fireMultiplierEl.classList.add('fire-multiplier');
+        fireMultiplierEl.textContent = '🔥 x2 PUNTOS 🔥';
+        document.body.appendChild(fireMultiplierEl);
+        
+        // Achievement
+        saveAchievement('fireMaster');
+        
+        // Deactivate after 5 seconds
+        if (fireTimeout) clearTimeout(fireTimeout);
+        fireTimeout = setTimeout(() => deactivateFireMode(), 5000);
+    }
+
+    function deactivateFireMode() {
+        isFireMode = false;
+        scoreMultiplier = 1;
+        document.body.classList.remove('fire-mode');
+        
+        if (fireMultiplierEl) {
+            fireMultiplierEl.remove();
+            fireMultiplierEl = null;
+        }
+        if (fireTimeout) {
+            clearTimeout(fireTimeout);
+            fireTimeout = null;
+        }
+    }
+
+    // --- BOX SHUFFLE (moving boxes in last 10s) ---
+    function startBoxShuffle() {
+        if (boxesShuffling) return;
+        boxesShuffling = true;
+        
+        const boxes = Array.from(dropBoxes);
+        boxes.forEach(b => b.classList.add('box-shuffle'));
+        
+        boxShuffleInterval = setInterval(() => {
+            // Pick two random boxes and swap their grid positions
+            const i = Math.floor(Math.random() * boxes.length);
+            let j = Math.floor(Math.random() * boxes.length);
+            while (j === i) j = Math.floor(Math.random() * boxes.length);
+            
+            const parent = boxes[i].parentNode;
+            const nextSiblingI = boxes[i].nextSibling;
+            const nextSiblingJ = boxes[j].nextSibling;
+            
+            // Swap DOM positions
+            if (nextSiblingJ === boxes[i]) {
+                parent.insertBefore(boxes[i], boxes[j]);
+            } else if (nextSiblingI === boxes[j]) {
+                parent.insertBefore(boxes[j], boxes[i]);
+            } else {
+                parent.insertBefore(boxes[i], nextSiblingJ);
+                parent.insertBefore(boxes[j], nextSiblingI);
+            }
+        }, 2500);
+    }
+
+    function stopBoxShuffle() {
+        boxesShuffling = false;
+        if (boxShuffleInterval) {
+            clearInterval(boxShuffleInterval);
+            boxShuffleInterval = null;
+        }
+        dropBoxes.forEach(b => b.classList.remove('box-shuffle'));
+    }
+
+    // --- TIME CHANGE INDICATOR ---
+    function showTimeChange(amount) {
+        const el = document.createElement('div');
+        el.classList.add('time-change');
+        el.classList.add(amount > 0 ? 'time-bonus' : 'time-penalty');
+        el.textContent = amount > 0 ? `+${amount}s` : `${amount}s`;
+        
+        // Position near the timer
+        const timerRect = timerDisplay.getBoundingClientRect();
+        el.style.left = timerRect.left + 'px';
+        el.style.top = (timerRect.top + 30) + 'px';
+        
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1500);
+    }
+
     // Inicializar juego
     function initGame() {
         isGameActive = true;
         currentScore = 0;
         timeLeft = 30;
         comboCount = 0;
+        scoreMultiplier = 1;
+        totalErrors = 0;
+        fastCorrectCount = 0;
+        lastCorrectTime = 0;
+        sessionAchievements = {};
+        
+        deactivateFireMode();
+        stopBoxShuffle();
+        
         scoreEl.textContent = currentScore;
         progressBar.style.width = '100%';
         progressBar.style.backgroundColor = 'var(--neon-green)';
@@ -300,6 +647,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 progressBar.style.boxShadow = '0 0 10px var(--neon-red)';
                 sfxTick(true);
                 setBGMTempo(340); // Muy rápido, desesperante
+                
+                // Start box shuffle in last 10 seconds
+                if (!boxesShuffling) startBoxShuffle();
             } else if (timeLeft <= 15) {
                 sfxTick(false);
                 setBGMTempo(260); // Empieza a acelerar
@@ -308,6 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 stopBGM();
+                stopBoxShuffle();
                 gameOver(); // Time out
             }
         }, 1000);
@@ -323,14 +674,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const currentCaseData = pendingCases.shift();
+        const cardType = currentCaseData.type || 'normal';
         
         // Crear elemento tarjeta
         const card = document.createElement('div');
         card.classList.add('card');
+        
+        // Add special card class
+        if (cardType === 'virus') {
+            card.classList.add('card-virus');
+        } else if (cardType === 'overclock') {
+            card.classList.add('card-overclock');
+        }
+        
         card.setAttribute('draggable', 'true');
         card.setAttribute('data-answer', currentCaseData.respuesta);
+        card.setAttribute('data-type', cardType);
         card.textContent = currentCaseData.caso;
         card.id = 'active-card';
+        card.style.position = 'relative'; // For ::before pseudo-element positioning
 
         // Eventos Drag (Arrastrar)
         card.addEventListener('dragstart', handleDragStart);
@@ -351,6 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sfxGrab();
         // Almacenamos la respuesta correcta en la transferencia de datos
         e.dataTransfer.setData('text/plain', this.getAttribute('data-answer'));
+        e.dataTransfer.setData('card-type', this.getAttribute('data-type'));
         e.dataTransfer.effectAllowed = 'move';
     }
 
@@ -388,32 +751,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const correctAnswer = e.dataTransfer.getData('text/plain');
         const boxCategory = this.getAttribute('data-category');
+        const cardType = currentCard.getAttribute('data-type') || 'normal';
 
         if (correctAnswer === boxCategory) {
             // --- Respuesta Correcta ---
-            currentScore++;
+            const points = 1 * scoreMultiplier;
+            currentScore += points;
             comboCount++;
             scoreEl.textContent = currentScore;
             sfxCorrect();
+            
+            // Track speed for speedster achievement
+            const now = Date.now();
+            if (lastCorrectTime && (now - lastCorrectTime) < 1000) {
+                fastCorrectCount++;
+            } else {
+                fastCorrectCount = 1;
+            }
+            lastCorrectTime = now;
+
+            // Emit particles at drop point
+            emitParticles(e.clientX, e.clientY, null, 15);
+
+            // Handle special card types
+            if (cardType === 'virus') {
+                // Virus card classified correctly — still lose time!
+                timeLeft = Math.max(0, timeLeft - 3);
+                showTimeChange(-3);
+                sfxVirus();
+                shakeScreen('medium');
+                showFloatingMessage('🦠 VIRUS: -3s', false, e.clientX, e.clientY - 40);
+                saveAchievement('virusSurvivor');
+            } else if (cardType === 'overclock') {
+                // Overclock card classified correctly — gain time!
+                timeLeft += 5;
+                showTimeChange(+5);
+                sfxOverclock();
+                emitParticles(e.clientX, e.clientY, '#ffd700', 20);
+                showFloatingMessage('⚡ OVERCLOCK: +5s', true, e.clientX, e.clientY - 40);
+            }
+
+            // Check last second achievement
+            if (timeLeft <= 1) {
+                saveAchievement('lastSecond');
+            }
 
             // Mensajes y efectos de combo
             let comboMsg = '¡TRANSFERENCIA EXITOSA!';
             if (comboCount >= 5) {
                 comboMsg = `🔥 ¡COMBO x${comboCount}! ¡IMPARABLE!`;
                 sfxComboFanfare(comboCount);
+                // Activate fire mode at combo x5
+                if (!isFireMode) activateFireMode();
             } else if (comboCount >= 3) {
                 comboMsg = `⚡ ¡COMBO x${comboCount}!`;
                 sfxComboFanfare(comboCount);
             }
+            
+            if (scoreMultiplier > 1) {
+                comboMsg += ` (x${scoreMultiplier})`;
+            }
+            
             showFloatingMessage(comboMsg, true, e.clientX, e.clientY);
             
             // Efecto visual de éxito
             currentCard.classList.add('correct', 'placed');
+            currentCard.classList.remove('card-virus', 'card-overclock');
             currentCard.setAttribute('draggable', 'false'); // Ya no se puede arrastrar
             
             // Mover físicamente a la caja
             this.appendChild(currentCard);
             currentCard = null;
+
+            // Check achievements
+            checkAchievements();
 
             // Cargar siguiente tarjeta tras una pequeña pausa para ver la animación
             setTimeout(() => {
@@ -423,9 +834,17 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // --- Respuesta Incorrecta ---
             comboCount = 0; // Rompe el combo
+            totalErrors++;
             currentCard.classList.add('incorrect');
             sfxWrong();
+            shakeScreen('medium'); // Screen shake on error
             showFloatingMessage('¡ERROR DE PROTOCOLO!', false, e.clientX, e.clientY);
+            
+            // Deactivate fire mode on error
+            if (isFireMode) {
+                deactivateFireMode();
+                showFloatingMessage('🔥 Modo Fuego perdido...', false, e.clientX, e.clientY - 30);
+            }
             
             // Quitar clase incorrecta después de la animación de rebote
             setTimeout(() => {
@@ -465,6 +884,14 @@ document.addEventListener('DOMContentLoaded', () => {
         isGameActive = false;
         if (timerInterval) clearInterval(timerInterval);
         stopBGM();
+        stopBoxShuffle();
+        deactivateFireMode();
+        
+        // Check end-of-game achievements
+        if (totalErrors === 0 && currentScore > 0) {
+            saveAchievement('flawless');
+        }
+        checkAchievements();
         
         // Verificar si es nuevo récord ANTES de guardar
         const previousScores = getScores();
@@ -657,6 +1084,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function populateSolutions() {
         solutionsList.innerHTML = '';
         cloudCases.forEach((item, index) => {
+            if (item.type === 'virus' || item.type === 'overclock') return; // Skip special cards
             const div = document.createElement('div');
             div.classList.add('solution-item');
             div.innerHTML = `
@@ -673,10 +1101,18 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             solutionModal.classList.toggle('hidden');
         }
+        // L key for achievements
+        if ((e.key === 'l' || e.key === 'L') && !e.ctrlKey && !e.shiftKey) {
+            // Don't toggle if typing in input
+            if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+            toggleAchievements();
+        }
     });
 
     // Event Listeners
     closeModalBtn.addEventListener('click', () => solutionModal.classList.add('hidden'));
+    closeAchievementsBtn.addEventListener('click', () => achievementsModal.classList.add('hidden'));
+    achievementsBtn.addEventListener('click', () => toggleAchievements());
 
     
     resetScoresBtn.addEventListener('click', () => {
@@ -689,6 +1125,12 @@ document.addEventListener('DOMContentLoaded', () => {
     solutionModal.addEventListener('click', (e) => {
         if (e.target === solutionModal) {
             solutionModal.classList.add('hidden');
+        }
+    });
+
+    achievementsModal.addEventListener('click', (e) => {
+        if (e.target === achievementsModal) {
+            achievementsModal.classList.add('hidden');
         }
     });
 

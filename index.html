@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actividad 5: Clasificador Cloud</title>
+    <title>Actividad 5:Clasificador Cloud</title>
     <link rel="stylesheet" href="styles.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&family=Press+Start+2P&display=swap"
@@ -33,7 +33,8 @@
             <h2 class="neon-text-white">¡BIENVENIDO AL CLASIFICADOR CLOUD!</h2>
             <p style="margin-bottom: 20px; line-height: 1.6; font-size: 1.1rem;">
                 Clasifica la mayor cantidad de casos de uso de la nube en solamente <strong>30 segundos</strong>.<br>
-                Arrastra las tarjetas a la categoría correcta.
+                Arrastra las tarjetas a la categoría correcta.<br>
+                <small style="opacity: 0.6;">⚠️ Cuidado con las tarjetas virus · ⚡ Aprovecha los boosts</small>
             </p>
             <input type="text" id="player-name" class="cyber-input" placeholder="Tu nombre completo"
                 autocomplete="off" />
@@ -77,6 +78,8 @@
         </div>
     </main>
 
+    <!-- Particles container -->
+    <div id="particles-container"></div>
 
     <div id="solution-modal" class="modal hidden">
         <div class="modal-content">
@@ -85,6 +88,15 @@
             <div id="solutions-list">
 
             </div>
+        </div>
+    </div>
+
+    <!-- Achievements Modal -->
+    <div id="achievements-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" id="close-achievements">&times;</span>
+            <h2>🏆 Logros</h2>
+            <div id="achievements-list"></div>
         </div>
     </div>
 
@@ -120,6 +132,7 @@
         </div>
     </div>
 
+    <button id="achievements-btn" class="achievements-btn">🏆 Logros (L)</button>
     <button id="reset-scores-btn" class="reset-btn">Limpiar Récords</button>
 
     <script src="data.js"></script>
