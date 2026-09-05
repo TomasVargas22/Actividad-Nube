@@ -12,8 +12,13 @@
 </head>
 
 <body>
+    <!-- FNAF Camera/REC indicator -->
+    <div id="rec-indicator" class="rec-indicator hidden">
+        <span class="rec-dot"></span> REC | <span id="cam-label">CAM 05</span>
+    </div>
+
     <header>
-        <h1 class="main-title">CLOUD CLASSIFIER</h1>
+        <h1 class="main-title" id="secret-title">CLOUD CLASSIFIER</h1>
         <div class="hud-container">
             <div class="score-board">
                 Puntos: <span id="score">0</span>
@@ -29,12 +34,16 @@
 
     <div id="start-screen" class="modal">
         <div class="modal-content text-center">
-            <img src="phoenix.png" alt="Fénix Desarrollo Web" class="phoenix-logo" />
+            <img src="phoenix.png" alt="Fénix Desarrollo Web" class="phoenix-logo" id="phoenix-logo" />
             <h2 class="neon-text-white">¡BIENVENIDO AL CLASIFICADOR CLOUD!</h2>
+
+            </p>
             <p style="margin-bottom: 20px; line-height: 1.6; font-size: 1.1rem;">
                 Clasifica la mayor cantidad de casos de uso de la nube en solamente <strong>30 segundos</strong>.<br>
                 Arrastra las tarjetas a la categoría correcta.<br>
-                <small style="opacity: 0.6;">⚠️ Cuidado con las tarjetas virus · ⚡ Aprovecha los boosts</small>
+                <small style="opacity: 0.6;"> Chavales tened cuidado con las tarjetas virus <br>⚡ Aprovechen los
+                    boosts</small>
+                </br>
             </p>
             <input type="text" id="player-name" class="cyber-input" placeholder="Tu nombre completo"
                 autocomplete="off" />
@@ -80,6 +89,17 @@
 
     <!-- Particles container -->
     <div id="particles-container"></div>
+    
+    <!-- Mario Star for Fire Mode -->
+    <div id="mario-star" class="mario-star-ui hidden">
+        <img src="mario-star.png" alt="Super Star">
+    </div>
+
+    <!-- CRT Static overlay (for glitch effects) -->
+    <div id="crt-static" class="crt-static hidden"></div>
+
+    <!-- IT'S ME subliminal flash -->
+    <div id="its-me" class="its-me hidden">IT'S ME</div>
 
     <div id="solution-modal" class="modal hidden">
         <div class="modal-content">
@@ -108,6 +128,13 @@
         </div>
     </div>
 
+    <!-- FNAF Power Outage overlay-->
+    <div id="power-outage" class="power-outage hidden">
+        <div class="freddy-eyes">
+            <div class="eye left-eye"></div>
+            <div class="eye right-eye"></div>
+        </div>
+    </div>
 
     <div id="FinJuego" class="modal hidden">
         <div class="modal-content text-center">
@@ -134,6 +161,45 @@
 
     <button id="achievements-btn" class="achievements-btn">🏆 Logros (L)</button>
     <button id="reset-scores-btn" class="reset-btn">Limpiar Récords</button>
+
+    <!-- ADMIN PANEL MODAL -->
+    <div id="admin-modal" class="modal hidden">
+        <div class="modal-content admin-content">
+            <span class="close-btn" id="close-admin">&times;</span>
+            <h2 class="neon-text" style="color: #ff00ff;">🛠️ DEVTOOLS 🛠️</h2>
+
+            <div class="admin-section">
+                <h3>Forzar Siguiente Tarjeta</h3>
+                <div class="admin-buttons">
+                    <button class="cyber-btn admin-btn" id="force-golden">Forzar Golden Freddy</button>
+                    <button class="cyber-btn admin-btn" id="force-creeper">Forzar Creeper</button>
+                    <button class="cyber-btn admin-btn" id="force-virus">Forzar Virus</button>
+                    <button class="cyber-btn admin-btn" id="force-overclock">Forzar Overclock</button>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h3>Eventos Especiales</h3>
+                <div class="admin-buttons">
+                    <button class="cyber-btn admin-btn" id="trigger-fire">Activar Modo Fuego</button>
+                    <button class="cyber-btn admin-btn" id="trigger-powerout">Apagón FNAF</button>
+                    <button class="cyber-btn admin-btn" id="trigger-itsme">IT'S ME</button>
+                    <button class="cyber-btn admin-btn" id="trigger-crt">Estática CRT</button>
+                    <button class="cyber-btn admin-btn" id="trigger-honk">Honk Nariz</button>
+                    <button class="cyber-btn admin-btn" id="trigger-mc-achiev">Logro Minecraft</button>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h3> Cheats </h3>
+                <div class="admin-buttons">
+                    <button class="cyber-btn admin-btn" id="cheat-time-add">+10 Segundos</button>
+                    <button class="cyber-btn admin-btn" id="cheat-time-sub">-10 Segundos</button>
+                    <button class="cyber-btn admin-btn" id="cheat-score">+5 Puntos</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="data.js"></script>
     <script src="script.js"></script>

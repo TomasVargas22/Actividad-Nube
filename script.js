@@ -25,6 +25,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const achievementsList = document.getElementById('achievements-list');
     const achievementsBtn = document.getElementById('achievements-btn');
 
+    // Admin Panel
+    const adminModal = document.getElementById('admin-modal');
+    const closeAdminBtn = document.getElementById('close-admin');
+    const secretTitle = document.getElementById('secret-title');
+
+    // Mario Star
+    const marioStar = document.getElementById('mario-star');
+
+    // FNAF elements
+    const recIndicator = document.getElementById('rec-indicator');
+    const camLabel = document.getElementById('cam-label');
+    const crtStatic = document.getElementById('crt-static');
+    const itsMe = document.getElementById('its-me');
+    const powerOutage = document.getElementById('power-outage');
+    const phoenixLogo = document.getElementById('phoenix-logo');
+
     let currentScore = 0;
     let pendingCases = [];
     let currentCard = null;
@@ -43,6 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let fastCorrectCount = 0;
     let lastCorrectTime = 0;
     let sessionAchievements = {};
+    let consecutiveErrors = 0;
+    let honkCount = 0;
+    let totalCorrectThisGame = 0;
+    const camNames = ['CAM 01 - IaaS', 'CAM 02 - PaaS', 'CAM 03 - SaaS', 'CAM 04 - PUBLIC', 'CAM 05 - PRIVATE', 'CAM 06 - HYBRID'];
     
     // Precarga del audio de récord
     const victorySound = new Audio('SOUND2.mp3');
@@ -104,6 +124,20 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: '🦠',
             name: 'Antivirus',
             desc: 'Clasifica correctamente una tarjeta Virus.',
+            check: () => false // Checked manually
+        },
+        boopTheSnoot: {
+            id: 'boopTheSnoot',
+            icon: '🐻',
+            name: 'Boop the Snoot',
+            desc: 'Toca la nariz del fénix 5 veces. ¿Por qué?',
+            check: () => false // Checked manually
+        },
+        goldenFreddy: {
+            id: 'goldenFreddy',
+            icon: '✨',
+            name: 'Golden Freddy',
+            desc: 'Clasifica correctamente la tarjeta dorada misteriosa.',
             check: () => false // Checked manually
         }
     };
@@ -512,14 +546,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FIRE MODE ---
     function activateFireMode() {
         if (isFireMode) {
+            // Si ya está activo, reiniciamos el temporizador
             if (fireTimeout) clearTimeout(fireTimeout);
             fireTimeout = setTimeout(() => deactivateFireMode(), 5000);
             return;
         }
+        
         isFireMode = true;
         scoreMultiplier = 2;
         
         document.body.classList.add('fire-mode');
+        if (marioStar) marioStar.classList.remove('hidden');
+        
+        // Efecto visual global al entrar
+        const flash = document.createElement('div');
+        flash.style.position = 'fixed';
+        flash.style.top = '0'; flash.style.left = '0';
+        flash.style.width = '100%'; flash.style.height = '100%';
+        flash.style.backgroundColor = 'white';
+        flash.style.zIndex = '99999';
+        flash.style.transition = 'opacity 0.5s';
+        document.body.appendChild(flash);
+        setTimeout(() => { flash.style.opacity = '0'; }, 50);
+        setTimeout(() => { flash.remove(); }, 550);
+
         sfxFireMode();
         shakeScreen('light');
 
@@ -530,7 +580,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const playPromise = fireMusic.play();
             if (playPromise !== undefined) {
                 playPromise.catch(() => {
-                    // Si el archivo de audio aún no existe, continuar con el BGM procedural
                     if (isGameActive && !bgmInterval) scheduleBGM();
                 });
             }
@@ -556,8 +605,8 @@ document.addEventListener('DOMContentLoaded', () => {
         isFireMode = false;
         scoreMultiplier = 1;
         document.body.classList.remove('fire-mode');
+        if (marioStar) marioStar.classList.add('hidden');
         
-        // Detener música de fuego y volver al BGM normal
         try {
             fireMusic.pause();
             fireMusic.currentTime = 0;
@@ -643,6 +692,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fastCorrectCount = 0;
         lastCorrectTime = 0;
         sessionAchievements = {};
+        consecutiveErrors = 0;
+        totalCorrectThisGame = 0;
         
         deactivateFireMode();
         stopBoxShuffle();
@@ -657,6 +708,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (timerInterval) clearInterval(timerInterval);
         startTimer();
         startBGM();
+        
+        // Show REC indicator
+        recIndicator.classList.remove('hidden');
+        crtStatic.classList.remove('hidden');
         
         // Copiar y mezclar los casos aleatoriamente
         pendingCases = [...cloudCases].sort(() => Math.random() - 0.5);
@@ -697,9 +752,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 sfxTick(false);
                 setBGMTempo(260); // Empieza a acelerar
             }
+
+            // Format timer
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${m}:${s}`;
+            
+            // Warning styles + MK FINISH HIM logic
+            if (timeLeft <= 5 && timeLeft > 0) {
+                timerDisplay.classList.add('timer-warning');
+                timerDisplay.classList.add('timer-mk');
+                if (timeLeft === 5) {
+                    showFloatingMessage('💀 FINISH HIM 💀', false, window.innerWidth / 2 - 100, window.innerHeight / 2 - 50);
+                }
+            } else if (timeLeft > 5) {
+                timerDisplay.classList.remove('timer-warning');
+                timerDisplay.classList.remove('timer-mk');
+            }
             
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
+                timerDisplay.textContent = "00:00";
                 stopBGM();
                 stopBoxShuffle();
                 gameOver(); // Time out
@@ -728,14 +801,21 @@ document.addEventListener('DOMContentLoaded', () => {
             card.classList.add('card-virus');
         } else if (cardType === 'overclock') {
             card.classList.add('card-overclock');
+        } else if (cardType === 'golden') {
+            card.classList.add('card-golden');
+        } else if (cardType === 'creeper') {
+            card.classList.add('card-creeper');
         }
         
         card.setAttribute('draggable', 'true');
         card.setAttribute('data-answer', currentCaseData.respuesta);
         card.setAttribute('data-type', cardType);
-        card.textContent = currentCaseData.caso;
+        card.innerHTML = currentCaseData.caso;
         card.id = 'active-card';
         card.style.position = 'relative'; // For ::before pseudo-element positioning
+
+        // Update REC cam label randomly
+        if (camLabel) camLabel.textContent = camNames[Math.floor(Math.random() * camNames.length)];
 
         // Eventos Drag (Arrastrar)
         card.addEventListener('dragstart', handleDragStart);
@@ -832,11 +912,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 sfxOverclock();
                 emitParticles(e.clientX, e.clientY, '#ffd700', 20);
                 showFloatingMessage('⚡ OVERCLOCK: +5s', true, e.clientX, e.clientY - 40);
+            } else if (cardType === 'golden') {
+                // Golden Freddy! Freeze time 3s + massive bonus
+                const frozenTime = timeLeft;
+                timeLeft += 3;
+                showTimeChange(+3);
+                sfxAchievement();
+                emitParticles(e.clientX, e.clientY, '#ffd700', 30);
+                emitParticles(e.clientX + 30, e.clientY - 20, '#ffffff', 15);
+                currentScore += 4; // +4 extra bonus (total 5 with the normal 1)
+                scoreEl.textContent = currentScore;
+                showFloatingMessage('🐻 GOLDEN FREDDY: +5pts +3s', true, e.clientX, e.clientY - 40);
+                saveAchievement('goldenFreddy');
+                shakeScreen('light');
             }
 
             // Check last second achievement
             if (timeLeft <= 1) {
                 saveAchievement('lastSecond');
+            }
+
+            // Reset consecutive errors on correct answer
+            consecutiveErrors = 0;
+            totalCorrectThisGame++;
+
+            // Creeper defused
+            if (cardType === 'creeper') {
+                sfxCreeperHiss();
+                showFloatingMessage('✅ CREEPER DESACTIVADO', true, e.clientX, e.clientY - 40);
+            }
+
+            // "IT'S ME" subliminal (random 1 in 100 chance)
+            if (Math.random() < 0.01) {
+                triggerItsMe();
             }
 
             // Mensajes y efectos de combo
@@ -859,11 +967,17 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Efecto visual de éxito
             currentCard.classList.add('correct', 'placed');
-            currentCard.classList.remove('card-virus', 'card-overclock');
+            currentCard.classList.remove('card-virus', 'card-overclock', 'card-golden', 'card-creeper');
             currentCard.setAttribute('draggable', 'false'); // Ya no se puede arrastrar
             
             // Mover físicamente a la caja
             this.appendChild(currentCard);
+            
+            // Check for Fire Mode warning at combo 4
+            if (comboCount === 4) {
+                showMCAchievement('¡Combo x4!', 'Uno más para Modo Fuego 🔥');
+            }
+            
             currentCard = null;
 
             // Check achievements
@@ -878,11 +992,29 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- Respuesta Incorrecta ---
             comboCount = 0; // Rompe el combo
             totalErrors++;
+            consecutiveErrors++;
             currentCard.classList.add('incorrect');
             sfxWrong();
             shakeScreen('medium'); // Screen shake on error
-            showFloatingMessage('¡ERROR DE PROTOCOLO!', false, e.clientX, e.clientY);
             
+            // Creeper Explosion logic
+            if (cardType === 'creeper') {
+                sfxCreeperExplode();
+                shakeScreen('heavy');
+                timeLeft = Math.max(0, timeLeft - 10);
+                showTimeChange(-10);
+                showFloatingMessage('💥 BOOM: -10s', false, e.clientX, e.clientY - 40);
+                const explosionOverlay = document.createElement('div');
+                explosionOverlay.classList.add('creeper-explosion-overlay');
+                document.body.appendChild(explosionOverlay);
+                setTimeout(() => explosionOverlay.remove(), 1500);
+            } else {
+                showFloatingMessage('¡ERROR DE PROTOCOLO!', false, e.clientX, e.clientY);
+            }
+            
+            // CRT static burst on error
+            triggerCRTStatic();
+
             // Deactivate fire mode on error
             if (isFireMode) {
                 deactivateFireMode();
@@ -923,6 +1055,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
+    // --- MINECRAFT ACHIEVEMENT UI ---
+    function showMCAchievement(title, desc) {
+        const ach = document.createElement('div');
+        ach.className = 'mc-achievement';
+        ach.innerHTML = `
+            <div class="mc-icon"></div>
+            <div class="mc-text">
+                <div class="mc-title">${title}</div>
+                <div class="mc-desc">${desc}</div>
+            </div>
+        `;
+        document.body.appendChild(ach);
+        
+        // Trigger reflow for transition
+        void ach.offsetWidth;
+        ach.classList.add('show');
+        
+        setTimeout(() => {
+            ach.classList.remove('show');
+            setTimeout(() => ach.remove(), 600);
+        }, 3000);
+    }
+
     function gameOver() {
         isGameActive = false;
         if (timerInterval) clearInterval(timerInterval);
@@ -930,9 +1085,15 @@ document.addEventListener('DOMContentLoaded', () => {
         stopBoxShuffle();
         deactivateFireMode();
         
+        // Hide FNAF HUD
+        recIndicator.classList.add('hidden');
+        crtStatic.classList.add('hidden');
+
         // Check end-of-game achievements
+        let isFlawless = false;
         if (totalErrors === 0 && currentScore > 0) {
             saveAchievement('flawless');
+            isFlawless = true;
         }
         checkAchievements();
         
@@ -948,15 +1109,92 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- SECUENCIA CINEMÁTICA ESTILO FNAF ---
             playCinematicRecord(previousHighScore);
         } else {
-            // Sin récord: mostrar modal normal
+            // --- FNAF POWER OUTAGE SEQUENCE (sin récord) ---
+            playPowerOutage(isFlawless);
+        }
+    }
+
+    // --- FNAF: POWER OUTAGE SEQUENCE ---
+    function playPowerOutage(isFlawless) {
+        // Play sinister hum
+        sfxPowerDown();
+        
+        // Show black screen with eyes
+        powerOutage.classList.remove('hidden');
+        
+        // After 3.5s, hide power outage and show normal game over
+        setTimeout(() => {
+            fnafLaughAudio.pause();
+            fnafLaughAudio.currentTime = 0;
+            
+            powerOutage.classList.add('hidden');
             sfxGameOver();
-            endGameTitle.textContent = "¡TIEMPO AGOTADO!";
-            endGameTitle.style.color = "var(--neon-blue)";
-            endGameTitle.style.textShadow = "";
+            
+            if (isFlawless) {
+                endGameTitle.textContent = "FLAWLESS VICTORY";
+                endGameTitle.className = "mk-flawless";
+                endGameTitle.style.color = "";
+                endGameTitle.style.textShadow = "";
+            } else {
+                endGameTitle.textContent = "¡TIEMPO AGOTADO!";
+                endGameTitle.className = "neon-text";
+                endGameTitle.style.color = "var(--neon-blue)";
+                endGameTitle.style.textShadow = "";
+            }
+            
             endGameMessage.innerHTML = `Gran esfuerzo, <span class="neon-text">${playerName}</span>.<br><br>Lograste clasificar: <span id="final-score" class="neon-text" style="font-size:1.5rem">${currentScore}</span> tarjetas en 30 segundos.`;
             renderLeaderboard();
             endGameModal.classList.remove('hidden');
-        }
+        }, 3500);
+    }
+
+    // --- FNAF: CRT Static burst ---
+    function triggerCRTStatic() {
+        crtStatic.classList.add('active');
+        setTimeout(() => crtStatic.classList.remove('active'), 300);
+    }
+
+    // --- FNAF: IT'S ME subliminal ---
+    function triggerItsMe() {
+        itsMe.classList.remove('hidden');
+        setTimeout(() => itsMe.classList.add('hidden'), 200);
+    }
+
+    // --- FNAF: Honk Sound (Freddy nose boop) ---
+    const fnafNoseAudio = new Audio('Fnaf nose.mp3');
+    fnafNoseAudio.preload = 'auto';
+
+    function sfxHonk() {
+        fnafNoseAudio.currentTime = 0;
+        fnafNoseAudio.play();
+    }
+
+    // --- FNAF: Power Down sound (sinister hum + laugh) ---
+    const fnafLaughAudio = new Audio('Fnaf risa.mp3');
+    fnafLaughAudio.preload = 'auto';
+
+    function sfxPowerDown() {
+        fnafLaughAudio.currentTime = 0;
+        fnafLaughAudio.play();
+    }
+
+    // --- MINECRAFT: Creeper Sounds ---
+    const creeperAudio = new Audio('Creeper.mp3');
+    creeperAudio.preload = 'auto';
+
+    function sfxCreeperHiss() {
+        creeperAudio.currentTime = 0;
+        creeperAudio.play();
+        // Pause after the hiss (approx 1.5s) before it explodes
+        setTimeout(() => {
+            creeperAudio.pause();
+        }, 1500);
+    }
+
+    function sfxCreeperExplode() {
+        // Start right at the explosion part (approx 1.5s)
+        creeperAudio.currentTime = 1.5;
+        creeperAudio.play();
     }
 
     function launchConfetti() {
@@ -1168,7 +1406,22 @@ document.addEventListener('DOMContentLoaded', () => {
     closeAchievementsBtn.addEventListener('click', () => achievementsModal.classList.add('hidden'));
     achievementsBtn.addEventListener('click', () => toggleAchievements());
 
-    
+    // --- FNAF: Phoenix Logo Honk ---
+    if (phoenixLogo) {
+        phoenixLogo.addEventListener('click', () => {
+            sfxHonk();
+            honkCount++;
+            phoenixLogo.classList.remove('honk-bounce');
+            void phoenixLogo.offsetWidth; // Force reflow
+            phoenixLogo.classList.add('honk-bounce');
+            setTimeout(() => phoenixLogo.classList.remove('honk-bounce'), 450);
+            
+            if (honkCount >= 5) {
+                saveAchievement('boopTheSnoot');
+            }
+        });
+    }
+
     resetScoresBtn.addEventListener('click', () => {
         if (confirm('¿Estás seguro de que quieres borrar todos los récords? Esta acción es irreversible.')) {
             localStorage.removeItem('cloudClassifierScores');
@@ -1186,6 +1439,99 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === achievementsModal) {
             achievementsModal.classList.add('hidden');
         }
+    });
+
+    adminModal.addEventListener('click', (e) => {
+        if (e.target === adminModal) {
+            adminModal.classList.add('hidden');
+        }
+    });
+
+    // --- ADMIN PANEL LOGIC ---
+    if (secretTitle) {
+        secretTitle.addEventListener('dblclick', () => {
+            adminModal.classList.remove('hidden');
+        });
+    }
+
+    if (closeAdminBtn) {
+        closeAdminBtn.addEventListener('click', () => {
+            adminModal.classList.add('hidden');
+        });
+    }
+
+    function forceCard(type) {
+        if (!isGameActive) {
+            alert("⚠️ Debes iniciar una partida primero para forzar tarjetas.");
+            return;
+        }
+        const cardData = cloudCases.find(c => c.type === type);
+        if (cardData) {
+            pendingCases.unshift(cardData);
+            if (currentCard) currentCard.remove();
+            loadNextCard();
+            adminModal.classList.add('hidden');
+            showFloatingMessage(`MOD INYECTADO: ${type.toUpperCase()}`, true, window.innerWidth/2, window.innerHeight/2);
+        }
+    }
+
+    document.getElementById('force-golden')?.addEventListener('click', () => forceCard('golden'));
+    document.getElementById('force-creeper')?.addEventListener('click', () => forceCard('creeper'));
+    document.getElementById('force-virus')?.addEventListener('click', () => forceCard('virus'));
+    document.getElementById('force-overclock')?.addEventListener('click', () => forceCard('overclock'));
+
+    document.getElementById('trigger-fire')?.addEventListener('click', () => {
+        if (!isGameActive) return alert("Inicia partida primero.");
+        comboCount = 5;
+        activateFireMode();
+        adminModal.classList.add('hidden');
+    });
+
+    document.getElementById('trigger-powerout')?.addEventListener('click', () => {
+        if (!isGameActive) return alert("Inicia partida primero.");
+        timeLeft = 1;
+        currentScore = 0; // Force non-record
+        adminModal.classList.add('hidden');
+        // Let the timer run out natively next second
+    });
+
+    document.getElementById('trigger-itsme')?.addEventListener('click', () => {
+        triggerItsMe();
+        adminModal.classList.add('hidden');
+    });
+
+    document.getElementById('trigger-crt')?.addEventListener('click', () => {
+        triggerCRTStatic();
+        adminModal.classList.add('hidden');
+    });
+
+    document.getElementById('trigger-honk')?.addEventListener('click', () => {
+        sfxHonk();
+        adminModal.classList.add('hidden');
+    });
+
+    document.getElementById('trigger-mc-achiev')?.addEventListener('click', () => {
+        showMCAchievement('¡Combo x4!', 'Uno más para Modo Fuego 🔥');
+        adminModal.classList.add('hidden');
+    });
+
+    document.getElementById('cheat-time-add')?.addEventListener('click', () => {
+        if (!isGameActive) return alert("Inicia partida primero.");
+        timeLeft += 10;
+        showTimeChange(10);
+    });
+
+    document.getElementById('cheat-time-sub')?.addEventListener('click', () => {
+        if (!isGameActive) return alert("Inicia partida primero.");
+        timeLeft = Math.max(1, timeLeft - 10);
+        showTimeChange(-10);
+    });
+
+    document.getElementById('cheat-score')?.addEventListener('click', () => {
+        if (!isGameActive) return alert("Inicia partida primero.");
+        currentScore += 5;
+        scoreEl.textContent = currentScore;
+        showFloatingMessage('+5 PUNTOS (CHEAT)', true, window.innerWidth/2, window.innerHeight/2);
     });
 
     // Permitir iniciar también presionando Enter en el input de nombre

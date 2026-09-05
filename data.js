@@ -110,5 +110,17 @@ const cloudCases = [
         caso: "⚡ BOOST: La empresa migra toda su comunicación a un SaaS colaborativo, aumentando la productividad del equipo remoto en un 40%.",
         respuesta: "SaaS",
         type: "overclock"
+    },
+    // --- GOLDEN FREDDY (Easter Egg súper raro) ---
+    {
+        caso: "🐻 GOLDEN FREDDY: Un misterioso servicio en la nube aparece sin previo aviso. Parece una infraestructura fantasma que ofrece máquinas virtuales ilimitadas... pero solo existe por unos segundos. ¿Es IaaS o solo una alucinación?",
+        respuesta: "IaaS",
+        type: "golden"
+    },
+    // --- CREEPER (Easter Egg Minecraft) ---
+    {
+        caso: "<img src='creeper-icon.png' alt='Creeper' style='width: 22px; height: 22px; vertical-align: middle; image-rendering: pixelated; border-radius: 2px;'> Awww man... este servicio en la nube se ve verde y se acerca peligrosamente a tu base de datos. ¡Rápido, ponlo en un servidor aislado o explotará toda la empresa! (Pista: Infraestructura)",
+        respuesta: "IaaS",
+        type: "creeper"
     }
 ];
