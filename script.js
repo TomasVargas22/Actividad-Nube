@@ -51,13 +51,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (victorySound.src.includes('SOUND2.mp3')) victorySound.src = 'sound2.mp3';
     }, { once: true });
 
-    // Precarga de música para Modo Fuego (busca 'fuego.mp3' o 'fire.mp3')
-    const fireMusic = new Audio('fuego.mp3');
+    // Precarga de música para Modo Fuego / Estrella de Mario (mario 67.mp3)
+    const fireMusic = new Audio('mario 67.mp3');
     fireMusic.preload = 'auto';
     fireMusic.loop = true;
-    fireMusic.volume = 0.85;
+    fireMusic.volume = 0.9;
     fireMusic.addEventListener('error', () => {
-        if (fireMusic.src.includes('fuego.mp3')) fireMusic.src = 'fire.mp3';
+        if (fireMusic.src.includes('mario%2067.mp3') || fireMusic.src.includes('mario 67.mp3')) {
+            fireMusic.src = 'mario.mp3';
+        }
     }, { once: true });
 
     // --- ACHIEVEMENTS SYSTEM ---
@@ -539,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show multiplier badge
         fireMultiplierEl = document.createElement('div');
         fireMultiplierEl.classList.add('fire-multiplier');
-        fireMultiplierEl.textContent = '🔥 x2 PUNTOS 🔥';
+        fireMultiplierEl.textContent = '⭐ ¡MODO ESTRELLA x2! ⭐';
         document.body.appendChild(fireMultiplierEl);
         
         // Achievement
