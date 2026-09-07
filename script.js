@@ -126,11 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
             desc: 'Clasifica correctamente una tarjeta Virus.',
             check: () => false // Checked manually
         },
-        boopTheSnoot: {
-            id: 'boopTheSnoot',
-            icon: '🐻',
-            name: 'Boop the Snoot',
-            desc: 'Toca la nariz del fénix 5 veces. ¿Por qué?',
+        elitNose: {
+            id: 'elitNose',
+            icon: '🔥',
+            name: 'Elit',
+            desc: 'Toca la nariz de Elit 5 veces.',
             check: () => false // Checked manually
         },
         goldenFreddy: {
@@ -144,7 +144,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getUnlockedAchievements() {
         const data = localStorage.getItem('cloudClassifierAchievements');
-        return data ? JSON.parse(data) : {};
+        const unlocked = data ? JSON.parse(data) : {};
+        if (unlocked.boopTheSnoot && !unlocked.elitNose) {
+            unlocked.elitNose = unlocked.boopTheSnoot;
+        }
+        return unlocked;
     }
 
     function saveAchievement(id) {
@@ -1419,7 +1423,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => phoenixLogo.classList.remove('honk-bounce'), 450);
 
             if (honkCount >= 5) {
-                saveAchievement('boopTheSnoot');
+                saveAchievement('elitNose');
             }
         });
     }
